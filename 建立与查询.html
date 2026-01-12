@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据库20题冲刺特训 - 乔老师</title>
+    <style>
+        :root {
+            --primary: #4834d4;
+            --success: #6ab04c;
+            --error: #eb4d4b;
+            --bg: #f9f9f9;
+            --card: #ffffff;
+            --text: #2c3e50;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background-color: var(--bg);
+            margin: 0;
+            padding: 20px;
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+        }
+
+        /* 头部进度 */
+        .header {
+            background: var(--card);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+            text-align: center;
+            position: sticky;
+            top: 20px;
+            z-index: 100;
+        }
+
+        .progress-bar {
+            height: 10px;
+            background: #e0e0e0;
+            border-radius: 5px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: var(--primary);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* 题目卡片 */
+        .question-card {
+            background: var(--card);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            display: none; /* 默认隐藏 */
+            animation: slideIn 0.4s ease;
+        }
+
+        .question-card.active {
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .q-badge {
+            background: var(--primary);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            display: inline-block;
+        }
+
+        h3 { margin-top: 0; font-size: 1.3em; line-height: 1.6; }
+
+        /* 选项 */
+        .options { display: grid; gap: 12px; margin-top: 20px; }
+        
+        .opt-btn {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: left;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .opt-btn:hover { border-color: var(--primary); background: #f4f6ff; }
+
+        .opt-btn.correct { background: #dff9fb; border-color: var(--success); color: #009432; }
+        .opt-btn.wrong { background: #ffdede; border-color: var(--error); color: #eb4d4b; }
+
+        /* 解析区域 */
+        .analysis {
+            margin-top: 25px;
+            border-top: 2px dashed #eee;
+            padding-top: 20px;
+            display: none;
+        }
+
+        .analysis-item { margin-bottom: 15px; }
+        .label { font-weight: bold; color: var(--primary); display: block; margin-bottom: 5px; }
+        .content { color: #555; line-height: 1.6; }
+        
+        .example-box {
+            background: #f1f2f6;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid var(--primary);
+            font-family: 'Consolas', monospace;
+            font-size: 0.9em;
+            color: #333;
+        }
+
+        /* 底部导航 */
+        .nav-btns {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1em;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .btn-next { background: var(--primary); color: white; box-shadow: 0 4px 10px rgba(72, 52, 212, 0.3); }
+        .btn-next:disabled { background: #ccc; box-shadow: none; cursor: not-allowed; }
+
+        /* 结算页 */
+        .result-page {
+            text-align: center;
+            padding: 50px 20px;
+            display: none;
+        }
+        .score-circle {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3em;
+            font-weight: bold;
+            margin: 0 auto 30px;
+            box-shadow: 0 10px 20px rgba(72, 52, 212, 0.4);
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h2 style="margin:0;">🔥 数据库20题特训</h2>
+        <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+        <div style="margin-top:10px; font-size:0.9em; color:#666;">
+            进度：<span id="q-index">1</span> / 20
+        </div>
+    </div>
+
+    <div id="quiz-area"></div>
+
+    <div class="result-page" id="result-area">
+        <div class="score-circle" id="final-score">0</div>
+        <h2>全卷完！</h2>
+        <p>乔老师：<span id="comment"></span></p>
+        <button class="btn btn-next" onclick="location.reload()">再刷一遍</button>
+    </div>
+</div>
+
+<script>
+    /* 20道精选题目数据 */
+    const questions = [
+        // --- 第一部分：建表与结构 (DDL) ---
+        {
+            q: "想要删除一张表中的【所有数据】，但【保留表结构】（即房子还在，家具扔光），应该使用什么命令？",
+            opts: ["DROP TABLE", "DELETE TABLE", "DELETE FROM", "REMOVE TABLE"],
+            ans: 2,
+            point: "数据删除 vs 表删除",
+            layman: "DROP是拆房子（连地基都没了）；DELETE是搬空房子（房子还能住）。题目说保留结构，所以是搬家。",
+            example: "DELETE FROM Student; -- 删光数据，表还在"
+        },
+        {
+            q: "在创建表时，为了保证某列的值【既不为空也不重复】（如学号），应设置什么约束？",
+            opts: ["UNIQUE", "NOT NULL", "PRIMARY KEY", "FOREIGN KEY"],
+            ans: 2,
+            point: "主键约束",
+            layman: "主键 = 唯一 + 非空。就像身份证号，每个人必须有，而且不能和别人一样。",
+            example: "Sno CHAR(10) PRIMARY KEY"
+        },
+        {
+            q: "下列关于 VARCHAR(n) 和 CHAR(n) 的说法，错误的是？",
+            opts: ["CHAR是定长的，VARCHAR是变长的", "存放'男'或'女'建议用CHAR(2)", "VARCHAR比CHAR更节省空间", "VARCHAR的读取速度通常比CHAR快"],
+            ans: 3,
+            point: "数据类型对比",
+            layman: "CHAR是固定格子的盒子，VARCHAR是伸缩袋。CHAR虽然可能浪费空间，但因为规整，读取速度比需要计算长度的VARCHAR要快。",
+            example: "身份证用 CHAR(18)，姓名用 VARCHAR(20)。"
+        },
+        
+        // --- 第二部分：增删改 (DML) ---
+        {
+            q: "执行 `UPDATE Student SET Age = 20` 语句后，会发生什么后果？",
+            opts: ["修改当前选中的那一行", "修改第一行数据", "修改表中所有学生的年龄", "报错，必须加WHERE"],
+            ans: 2,
+            point: "UPDATE陷阱",
+            layman: "UPDATE 不加 WHERE，就是“地图炮”！它会把全表每一行都改了。这是新手最容易犯的“删库跑路”级错误。",
+            example: "必须写：UPDATE Student SET Age=20 WHERE Sno='001';"
+        },
+        {
+            q: "向 Student 表插入一条新记录，正确的语法是？",
+            opts: ["INSERT Student VALUES (...)", "INSERT INTO Student VALUES (...)", "ADD INTO Student VALUES (...)", "CREATE Student VALUES (...)"],
+            ans: 1,
+            point: "插入语法",
+            layman: "往里塞东西，用 INSERT INTO。Add是修改表结构用的，Create是造新表用的。",
+            example: "INSERT INTO Student(Sno, Name) VALUES('01', '乔');"
+        },
+
+        // --- 第三部分：基础查询与WHERE ---
+        {
+            q: "在 SELECT 查询中，用于【去重】的关键字是？",
+            opts: ["UNIQUE", "DISTINCT", "DIFFERENT", "ONLY"],
+            ans: 1,
+            point: "去重查询",
+            layman: "DISTINCT 就像筛子，把重复出现的行过滤掉，只保留唯一的。",
+            example: "SELECT DISTINCT Sdept FROM Student; -- 查有哪些系"
+        },
+        {
+            q: "查询名字中【姓张】的学生（名字可以是2个字或3个字），WHERE子句应写为？",
+            opts: ["Name LIKE '张_'", "Name LIKE '张%'", "Name = '张*'", "Name LIKE '张?'"],
+            ans: 1,
+            point: "模糊匹配通配符",
+            layman: "% 代表任意多个字符（0到无穷），_ 仅代表一个字符。不管张三还是张三丰，用 '张%' 都能兜住。",
+            example: "WHERE Name LIKE '张%'; -- 匹配张三、张无忌..."
+        },
+        {
+            q: "查询成绩为空（还没录入）的学生，条件怎么写？",
+            opts: ["Score = NULL", "Score IS NULL", "Score == NULL", "Score = 'NULL'"],
+            ans: 1,
+            point: "空值判断",
+            layman: "NULL 不是一个值，而是“无”。你不能说“它等于无吗”，只能问“它是无吗”（IS NULL）。",
+            example: "WHERE Score IS NULL; -- 正确写法"
+        },
+        {
+            q: "查询年龄在 20 到 23 岁之间的学生（包含20和23），最佳写法是？",
+            opts: ["Age >= 20 OR Age <= 23", "Age BETWEEN 20 AND 23", "Age IN (20, 23)", "Age > 20 AND Age < 23"],
+            ans: 1,
+            point: "范围查询",
+            layman: "BETWEEN ... AND ... 是专门用来画圈圈的，包含边界值（闭区间）。选项A逻辑错了（会选出所有人），C只选了20和23两岁。",
+            example: "WHERE Age BETWEEN 20 AND 23;"
+        },
+        {
+            q: "查询计算机系（CS）和数学系（MA）的学生，条件写为？",
+            opts: ["Sdept = 'CS' AND Sdept = 'MA'", "Sdept IN ('CS', 'MA')", "Sdept BETWEEN 'CS' AND 'MA'", "Sdept LIKE 'CS%MA'"],
+            ans: 1,
+            point: "集合查询",
+            layman: "一个人不可能既是CS又是MA（A错）。这是“多选一”，只要在名单里就行，用 IN。",
+            example: "WHERE Sdept IN ('CS', 'MA', 'IS');"
+        },
+
+        // --- 第四部分：聚合函数 ---
+        {
+            q: "想要统计全班一共有多少名学生，应该使用哪个函数？",
+            opts: ["SUM(*)", "COUNT(*)", "TOTAL(*)", "MAX(*)"],
+            ans: 1,
+            point: "聚合函数-计数",
+            layman: "COUNT 是数人头，SUM 是把数值加起来（比如算总分）。你不能把学号加起来，没意义。",
+            example: "SELECT COUNT(*) FROM Student;"
+        },
+        {
+            q: "下列SQL语句中，【错误】的是？",
+            opts: ["SELECT AVG(Sage) FROM Student", "SELECT COUNT(Sno) FROM Student", "SELECT * FROM Student WHERE AVG(Sage) > 20", "SELECT MAX(Score) FROM SC"],
+            ans: 2,
+            point: "聚合函数位置",
+            layman: "这是地狱级陷阱！WHERE 管的是原始人，AVG管的是统计数据。WHERE 后面不能直接跟聚合函数！必须用 HAVING。",
+            example: "错误：WHERE AVG(Sage)>20 <br>正确：HAVING AVG(Sage)>20"
+        },
+
+        // --- 第五部分：分组与排序 ---
+        {
+            q: "SQL语句执行顺序中，下列哪个子句是【最后】执行的（除了LIMIT）？",
+            opts: ["FROM", "WHERE", "GROUP BY", "ORDER BY"],
+            ans: 3,
+            point: "执行顺序",
+            layman: "先找表(FROM)，再筛选人(WHERE)，再分组(GROUP)，再筛组(HAVING)，最后才是整理队形(ORDER BY)。",
+            example: "ORDER BY 总是写在最后面。"
+        },
+        {
+            q: "要查询平均分大于80分的学生学号，应该使用？",
+            opts: ["WHERE AVG(Score) > 80", "GROUP BY Sno HAVING AVG(Score) > 80", "ORDER BY AVG(Score) > 80", "GROUP BY Sno WHERE AVG(Score) > 80"],
+            ans: 1,
+            point: "HAVING子句",
+            layman: "看到“每...的平均...”，必用 GROUP BY 分组。看到对“平均值”做筛选，必用 HAVING。",
+            example: "GROUP BY Sno HAVING AVG(Score) > 80"
+        },
+        {
+            q: "`ORDER BY Score DESC` 表示什么意思？",
+            opts: ["按成绩升序排列", "按成绩降序排列", "按成绩随机排列", "按成绩描述排列"],
+            ans: 1,
+            point: "排序方向",
+            layman: "ASC (Ascend) 是升序（从小到大），DESC (Descend) 是降序（从大到小，高分在最上面）。",
+            example: "ORDER BY Score DESC; -- 第一名排第一个"
+        },
+
+        // --- 第六部分：连接与嵌套 ---
+        {
+            q: "在多表查询中，如果省略了连接条件（如 WHERE A.id = B.id），会发生什么？",
+            opts: ["报错", "查询结果为空", "产生笛卡尔积（数据量爆炸）", "自动找到关联"],
+            ans: 2,
+            point: "笛卡尔积",
+            layman: "如果不告诉数据库怎么连，它就会把A表的每一行都和B表的每一行乱配对。100行配100行=10000行垃圾数据。",
+            example: "必须写：WHERE Student.Sno = SC.Sno"
+        },
+        {
+            q: "查询“选修了课程号为C1的学生姓名”，涉及Student表和SC表，连接条件是？",
+            opts: ["Student.Sname = SC.Sname", "Student.Sno = SC.Sno", "Student.Sno = SC.Cno", "不需要连接"],
+            ans: 1,
+            point: "等值连接",
+            layman: "找两张表的“桥梁”。学生表和成绩表都有“学号(Sno)”，这就是桥梁。",
+            example: "WHERE Student.Sno = SC.Sno AND SC.Cno='C1'"
+        },
+        {
+            q: "嵌套查询中，子查询（里层查询）的结果如果包含多个值，外层查询应该用什么符号？",
+            opts: ["=", "IN", "LIKE", "IS"],
+            ans: 1,
+            point: "子查询操作符",
+            layman: "如果里层查出来一堆人（比如计算机系所有人的学号），外层要匹配这一堆，就得用 IN（在名单里）。= 只能对一个值。",
+            example: "WHERE Sno IN (SELECT Sno FROM ...)"
+        },
+        
+        // --- 第七部分：综合与概念 ---
+        {
+            q: "事务（Transaction）的 ACID 特性中，I 指的是？",
+            opts: ["一致性 (Integrity)", "隔离性 (Isolation)", "立即性 (Immediate)", "智能性 (Intelligence)"],
+            ans: 1,
+            point: "事务ACID",
+            layman: "A=原子性, C=一致性, I=隔离性, D=持久性。隔离性指大家并发做操作时互不干扰。",
+            example: "Isolation: 你转账时，别人看不到中间状态。"
+        },
+        {
+            q: "SQL 语言属于哪种类型的语言？",
+            opts: ["过程化语言", "非过程化语言", "面向对象语言", "汇编语言"],
+            ans: 1,
+            point: "SQL语言特点",
+            layman: "SQL是非过程化的。你只需要告诉它“我要什么（What）”，不需要告诉它“怎么做（How）”，怎么做是DBMS的事。",
+            example: "SELECT * FROM ... (我要所有数据，别管我怎么查)"
+        }
+    ];
+
+    let currentIdx = 0;
+    let score = 0;
+
+    function initQuiz() {
+        const area = document.getElementById('quiz-area');
+        let html = '';
+        
+        questions.forEach((item, index) => {
+            html += `
+                <div class="question-card" id="q-card-${index}">
+                    <span class="q-badge">第 ${index + 1} 题</span>
+                    <h3>${item.q}</h3>
+                    <div class="options">
+                        ${item.opts.map((opt, i) => `
+                            <button class="opt-btn" onclick="checkAnswer(${index}, ${i}, this)">
+                                ${String.fromCharCode(65+i)}. ${opt}
+                            </button>
+                        `).join('')}
+                    </div>
+                    <div class="analysis" id="analysis-${index}">
+                        <div class="analysis-item">
+                            <span class="label">🎯 知识点：${item.point}</span>
+                        </div>
+                        <div class="analysis-item">
+                            <span class="label">🗣️ 乔老师通俗讲解：</span>
+                            <span class="content">${item.layman}</span>
+                        </div>
+                        <div class="analysis-item">
+                            <span class="label">💡 举一反三：</span>
+                            <div class="example-box">${item.example}</div>
+                        </div>
+                        <div style="text-align:right; margin-top:20px;">
+                            <button class="btn btn-next" id="btn-next-${index}" onclick="nextQuestion()" disabled>下一题 ➜</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        area.innerHTML = html;
+        showQuestion(0);
+    }
+
+    function showQuestion(index) {
+        document.querySelectorAll('.question-card').forEach(el => el.classList.remove('active'));
+        const card = document.getElementById(`q-card-${index}`);
+        if(card) card.classList.add('active');
+        
+        // 更新进度条
+        const pct = ((index + 1) / questions.length) * 100;
+        document.getElementById('progress').style.width = `${pct}%`;
+        document.getElementById('q-index').innerText = index + 1;
+    }
+
+    function checkAnswer(qIdx, optIdx, btn) {
+        // 防止重复点击
+        const card = document.getElementById(`q-card-${qIdx}`);
+        if(card.getAttribute('data-answered')) return;
+        card.setAttribute('data-answered', 'true');
+
+        const correct = questions[qIdx].ans;
+        const optionsDiv = card.querySelector('.options');
+        const btns = optionsDiv.querySelectorAll('.opt-btn');
+
+        if(optIdx === correct) {
+            btn.classList.add('correct');
+            score++;
+        } else {
+            btn.classList.add('wrong');
+            btns[correct].classList.add('correct'); // 高亮正确答案
+        }
+
+        // 显示解析
+        document.getElementById(`analysis-${qIdx}`).style.display = 'block';
+        document.getElementById(`btn-next-${qIdx}`).disabled = false;
+    }
+
+    function nextQuestion() {
+        if(currentIdx < questions.length - 1) {
+            currentIdx++;
+            showQuestion(currentIdx);
+            // 滚动到顶部
+            window.scrollTo({top: 0, behavior: 'smooth'});
+        } else {
+            showResult();
+        }
+    }
+
+    function showResult() {
+        document.getElementById('quiz-area').style.display = 'none';
+        document.querySelector('.header').style.display = 'none';
+        
+        const resultArea = document.getElementById('result-area');
+        resultArea.style.display = 'block';
+        
+        // 计分动画
+        let s = 0;
+        const scoreEl = document.getElementById('final-score');
+        const timer = setInterval(() => {
+            if(s >= score * 5) { // 假设每题5分，满分100
+                clearInterval(timer);
+                generateComment(score);
+            } else {
+                s++;
+                scoreEl.innerText = s;
+            }
+        }, 30);
+    }
+
+    function generateComment(rawScore) {
+        const finalScore = rawScore * 5;
+        const el = document.getElementById('comment');
+        if(finalScore === 100) el.innerText = "完美全对！你是数据库之神！🚀";
+        else if(finalScore >= 80) el.innerText = "优秀！期末A+稳了！🌟";
+        else if(finalScore >= 60) el.innerText = "及格了，但还要注意细节哦！💪";
+        else el.innerText = "基础有点薄弱，快去看乔老师的复习宝典！📚";
+    }
+
+    initQuiz();
+</script>
+
+</body>
+</html>
